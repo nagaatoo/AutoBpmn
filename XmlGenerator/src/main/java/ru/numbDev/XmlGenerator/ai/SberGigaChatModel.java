@@ -12,7 +12,6 @@ import org.springframework.ai.chat.model.Generation;
 import org.springframework.ai.chat.prompt.ChatOptions;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.beans.factory.annotation.Value;
-import static org.springframework.cloud.openfeign.security.OAuth2AccessTokenInterceptor.BEARER;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
@@ -29,6 +28,8 @@ import ru.numbDev.XmlGenerator.model.PromptRequest;
 @Component
 @RequiredArgsConstructor
 public class SberGigaChatModel implements ChatModel {
+
+  private static final String BEARER = "Bearer";
 
   @Value("${sber.auth.token}")
   private String authToken;

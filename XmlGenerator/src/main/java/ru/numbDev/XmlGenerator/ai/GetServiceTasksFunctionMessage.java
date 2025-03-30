@@ -52,7 +52,7 @@ public class GetServiceTasksFunctionMessage extends GigachatMessage {
                 ),
                 "code", new PropertyFields(
                     "string",
-                    "Код, находящийся между <bpmn:serviceTask > и </bpmn:serviceTask> включительно"
+                    "Код, находящийся между <bpmn:serviceTask> и </bpmn:serviceTask> включительно"
                 )
             ),
             List.of("name", "code")
@@ -63,8 +63,8 @@ public class GetServiceTasksFunctionMessage extends GigachatMessage {
     protected List<FewShotExample> getFewShotExamples() {
         return List.of(
             new FewShotExample(
-                "Текст bpmn процесса",
-                Map.of("processXml", new PropertyFields("string", "Текст bpmn процесса"))
+                getBodyRequest(),
+                Map.of("processXml", "<bpmn:serviceTask>foo</bpmn:serviceTask>")
             )
         );
     }

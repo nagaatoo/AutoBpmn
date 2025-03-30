@@ -23,6 +23,6 @@ public record FunctionContent(
 
     public record FewShotExample(
         String request,
-        Map<String, PropertyFields> params
+        Map<String, String> params
     ) {}
 }
