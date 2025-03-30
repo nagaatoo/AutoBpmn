@@ -1,0 +1,28 @@
+spring:
+    application:
+        name: XmlGenerator 
+    ai:
+        openai:
+            api-key: 
+            base-url: "https://gigachat.devices.sberbank.ru"
+            chat:
+                options:
+                    model: GigaChat-2-Max-preview
+
+logging:
+    level:
+        ru.numbDev.XmlGenerator.feign: DEBUG
+        feign.Logger: DEBUG
+
+sber:
+    auth:
+        clientId: 
+        scope: GIGACHAT_API_PERS
+    llm:
+        frequency-penalty: 1  # Штраф за частоту повторений
+        max-tokens: 1024  # Максимальное количество токенов в ответе
+        presence-penalty: 1  # Штраф за присутствие
+        stop-sequences: []  # Последовательности для остановки генерации
+        temperature: 0.7  # Температура генерации (креативность)
+        top-k: 0  # Параметр top-k для выборки следующего токена
+        top-p: 1.0  # Параметр top-p для выборки следующего токена

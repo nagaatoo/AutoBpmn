@@ -1,0 +1,598 @@
+openapi: 3.0.3
+info:
+  title: Simple CRM API
+  description: API для простой CRM системы с управлением пользователями и документами
+  version: 1.0.0
+  
+servers:
+  - url: http://localhost:8081
+    description: Основной сервер API
+  
+tags:
+  - name: Авторизация
+    description: Операции по аутентификации и авторизации
+  - name: Пользователи
+    description: Операции с пользователями системы
+  - name: Документы
+    description: Операции с документами
+  - name: Задачи
+    description: Операции с задачами
+
+paths:
+  /auth/login:
+    post:
+      summary: Вход в систему
+      tags:
+        - Авторизация
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+                  format: password
+      responses:
+        '200':
+          description: Успешная авторизация
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Неверные учетные данные
+
+  /users:
+    get:
+      summary: Получить список пользователей
+      tags:
+        - Пользователи
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Успешный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserList'
+        '401':
+          description: Неавторизованный доступ
+    
+    post:
+      summary: Создать нового пользователя
+      tags:
+        - Пользователи
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserInput'
+      responses:
+        '201':
+          description: Пользователь успешно создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Некорректные данные
+        '401':
+          description: Неавторизованный доступ
+
+  /users/{userId}:
+    get:
+      summary: Получить данные пользователя
+      tags:
+        - Пользователи
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Успешный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Неавторизованный доступ
+        '404':
+          description: Пользователь не найден
+    
+    put:
+      summary: Обновить данные пользователя
+      tags:
+        - Пользователи
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserInput'
+      responses:
+        '200':
+          description: Данные пользователя обновлены
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Некорректные данные
+        '401':
+          description: Неавторизованный доступ
+        '404':
+          description: Пользователь не найден
+    
+    delete:
+      summary: Удалить пользователя
+      tags:
+        - Пользователи
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Пользователь успешно удален
+        '401':
+          description: Неавторизованный доступ
+        '404':
+          description: Пользователь не найден
+
+  /documents:
+    get:
+      summary: Получить список документов
+      tags:
+        - Документы
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: type
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [DRAFT, PUBLISHED, ARCHIVED]
+      responses:
+        '200':
+          description: Успешный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentList'
+        '401':
+          description: Неавторизованный доступ
+    
+    post:
+      summary: Создать новый документ
+      tags:
+        - Документы
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - name
+                - type
+                - file
+              properties:
+                name:
+                  type: string
+                type:
+                  type: string
+                description:
+                  type: string
+                status:
+                  type: string
+                  enum: [DRAFT, PUBLISHED, ARCHIVED]
+                  default: DRAFT
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Документ успешно создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+        '400':
+          description: Некорректные данные
+        '401':
+          description: Неавторизованный доступ
+
+  /documents/{documentId}:
+    get:
+      summary: Получить данные документа
+      tags:
+        - Документы
+      parameters:
+        - name: documentId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Успешный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+        '401':
+          description: Неавторизованный доступ
+        '404':
+          description: Документ не найден
+    
+    put:
+      summary: Обновить данные документа
+      tags:
+        - Документы
+      parameters:
+        - name: documentId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                type:
+                  type: string
+                description:
+                  type: string
+                status:
+                  type: string
+                  enum: [DRAFT, PUBLISHED, ARCHIVED]
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Данные документа обновлены
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+        '400':
+          description: Некорректные данные
+        '401':
+          description: Неавторизованный доступ
+        '404':
+          description: Документ не найден
+    
+    delete:
+      summary: Удалить документ
+      tags:
+        - Документы
+      parameters:
+        - name: documentId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Документ успешно удален
+        '401':
+          description: Неавторизованный доступ
+        '404':
+          description: Документ не найден
+
+  /documents/{documentId}/download:
+    get:
+      summary: Скачать файл документа
+      tags:
+        - Документы
+      parameters:
+        - name: documentId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Файл документа
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '401':
+          description: Неавторизованный доступ
+        '404':
+          description: Документ не найден
+
+  /documents/search:
+    post:
+      summary: Расширенный поиск документов
+      tags:
+        - Документы
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                query:
+                  type: string
+                types:
+                  type: array
+                  items:
+                    type: string
+                statuses:
+                  type: array
+                  items:
+                    type: string
+                    enum: [DRAFT, PUBLISHED, ARCHIVED]
+                createdFrom:
+                  type: string
+                  format: date
+                createdTo:
+                  type: string
+                  format: date
+                createdBy:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Успешный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentList'
+        '400':
+          description: Некорректные данные
+        '401':
+          description: Неавторизованный доступ
+  /tasks:
+    post:
+      summary: Создать новую задачу
+      tags:
+        - Задачи
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskInput'  
+      responses:
+        '201':
+          description: Задача успешно создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          description: Некорректные данные
+        '401':
+          description: Неавторизованный доступ
+  /tasks/{taskId}/execute:
+    post:
+      summary: Отправить задачу на выполнение
+      tags:
+        - Задачи
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Задача успешно отправлена на выполнение
+        '400':
+          description: Некорректные данные
+        '401':
+          description: Неавторизованный доступ
+        
+components:
+  schemas:
+    AuthResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        expiresIn:
+          type: integer
+        user:
+          $ref: '#/components/schemas/User'
+    
+    UserList:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+        page:
+          type: integer
+        totalPages:
+          type: integer
+        totalItems:
+          type: integer
+    
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        firstName:
+          type: string
+        lastName:
+          type: string
+        position:
+          type: string
+        phone:
+          type: string
+        avatar:
+          type: string
+          format: uri
+        role:
+          type: string
+          enum: [ADMIN, MANAGER, USER]
+        active:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    
+    UserInput:
+      type: object
+      required:
+        - username
+        - email
+        - firstName
+        - lastName
+        - role
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+        firstName:
+          type: string
+        lastName:
+          type: string
+        position:
+          type: string
+        phone:
+          type: string
+        role:
+          type: string
+          enum: [ADMIN, MANAGER, USER]
+        active:
+          type: boolean
+          default: true
+    
+    DocumentList:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Document'
+        page:
+          type: integer
+        totalPages:
+          type: integer
+        totalItems:
+          type: integer
+    
+    Document:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        type:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [DRAFT, PUBLISHED, ARCHIVED]
+        createdBy:
+          type: string
+          format: uuid
+        createdByUser:
+          $ref: '#/components/schemas/User'
+        fileUrl:
+          type: string
+          format: uri
+        fileName:
+          type: string
+        fileMimeType:
+          type: string
+        fileSize:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    TaskInput:
+      type: object
+      required:
+        - documentId
+      properties:
+        documentId:
+          type: string
+          format: uuid
+          description: Идентификатор документа, для которого создается задача
+          
