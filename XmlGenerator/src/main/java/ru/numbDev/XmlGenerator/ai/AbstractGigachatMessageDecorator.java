@@ -7,18 +7,19 @@ import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.MessageType;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import ru.numbDev.XmlGenerator.model.FunctionContent;
+import ru.numbDev.XmlGenerator.model.GigachatMessage;
+import ru.numbDev.XmlGenerator.model.ParamModel;
 import ru.numbDev.XmlGenerator.model.FunctionContent.FewShotExample;
 import ru.numbDev.XmlGenerator.model.FunctionContent.Parameters;
 
-public abstract class GigachatMessage implements Message {
+public abstract class AbstractGigachatMessageDecorator implements Message {
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    public static final ObjectMapper objectMapper = new ObjectMapper();
 
     static {
         objectMapper.registerModule(new JavaTimeModule());
@@ -36,26 +37,22 @@ public abstract class GigachatMessage implements Message {
         return MessageType.TOOL; // пока нет другого типа
     }
 
-    @Override
-    public String getText() {
-        try {
-            return objectMapper.writeValueAsString(
-                new FunctionContent(
-                getFunctionName(),
-                getBodyRequest(),
-                getParameters(),
-                getReturnParameters(),
-                getFewShotExamples()
-            )
-            );
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Error serializing FunctionContent", e);
-        }
+    public abstract GigachatMessage getGigachatMessage();
+
+    public FunctionContent getFunctionCall() {
+        return new FunctionContent(
+            getFunctionName(),
+            getBodyRequest(),
+            getParametersDescription(),
+            getReturnParameters(),
+            getFewShotExamples()
+        );
     }
 
     protected abstract String getFunctionName();
     protected abstract String getBodyRequest();
-    protected abstract Parameters getParameters();
+    protected abstract ParamModel getParamModel();
+    protected abstract Parameters getParametersDescription();
     protected abstract Parameters getReturnParameters();
     protected abstract List<FewShotExample> getFewShotExamples();
     

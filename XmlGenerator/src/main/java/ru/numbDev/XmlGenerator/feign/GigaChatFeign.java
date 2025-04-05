@@ -14,7 +14,9 @@ import ru.numbDev.XmlGenerator.conf.FeignConfig;
 import ru.numbDev.XmlGenerator.model.Model;
 import ru.numbDev.XmlGenerator.model.ModelResponse;
 import ru.numbDev.XmlGenerator.model.ObjectResponse;
-import ru.numbDev.XmlGenerator.model.PromptRequest;
+import ru.numbDev.XmlGenerator.model.GigachatInitFunctionResponse;
+import ru.numbDev.XmlGenerator.model.GigachatPromptRequest;
+import ru.numbDev.XmlGenerator.model.GigachatPromptUserRequest;
 
 @FeignClient(name = "gigachat-client", url = "https://gigachat.devices.sberbank.ru", configuration = FeignConfig.class)
 public interface GigaChatFeign {
@@ -29,7 +31,12 @@ public interface GigaChatFeign {
      * Send prompt to chat
      */
     @PostMapping(path = "/api/v1/chat/completions", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<ModelResponse> prompt(
+    ResponseEntity<GigachatInitFunctionResponse> initFunction( // ModelResponse
             @RequestHeader("Authorization") String auth,
-            @RequestBody PromptRequest promptRequest);
+            @RequestBody GigachatPromptRequest promptRequest);
+
+    @PostMapping(path = "/api/v1/chat/completions", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<ModelResponse> executePrompt(
+            @RequestHeader("Authorization") String auth,
+            @RequestBody GigachatPromptUserRequest promptRequest);
 }

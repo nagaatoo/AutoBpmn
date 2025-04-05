@@ -8,12 +8,20 @@ import lombok.Getter;
 import ru.numbDev.XmlGenerator.model.FunctionContent.FewShotExample;
 import ru.numbDev.XmlGenerator.model.FunctionContent.Parameters;
 import ru.numbDev.XmlGenerator.model.FunctionContent.PropertyFields;
+import ru.numbDev.XmlGenerator.model.GetServiceTaskFunctionParamModel;
+import ru.numbDev.XmlGenerator.model.GigachatMessage;
+import ru.numbDev.XmlGenerator.model.ParamModel;
 
 @Builder
 @Getter
-public class GetServiceTasksFunctionMessage extends GigachatMessage {
+public class GetServiceTasksFunctionMessage extends AbstractGigachatMessageDecorator {
 
     private final String processXml;
+
+    @Override
+    public String getText() {
+        return "Найди все теги <bpmn:serviceTask> в bpmn процессе и верни их содержимое вместе с тегами. Текст bpmn процесса";
+    }
 
     @Override
     protected String getFunctionName() {
@@ -23,50 +31,54 @@ public class GetServiceTasksFunctionMessage extends GigachatMessage {
     @Override
     protected String getBodyRequest() {
         return """
-        Найди все теги <bpmn:serviceTask> в bpmn процессе и верни их содержимое в формате json.
-        """;
+                Поиск всех тегов <bpmn:serviceTask> в bpmn процессе и возвращение их содержимого вместе с тегами <bpmn:serviceTask>.
+                """;
     }
 
     @Override
-    protected Parameters getParameters() {
+    protected Parameters getParametersDescription() {
         return new Parameters(
-            "object",
-            Map.of(
-                "processXml", new PropertyFields(
-                    "string",
-                    "Текст bpmn процесса"
-                )
-            ),
-            List.of("processXml")
-        );
+                "object",
+                Map.of(
+                        "processXml", new PropertyFields(
+                                "string",
+                                "Текст bpmn процесса")),
+                List.of("processXml"));
     }
 
     @Override
     protected Parameters getReturnParameters() {
         return new Parameters(
-            "object",
-            Map.of(
-                "name", new PropertyFields(
-                    "string",
-                    "Имя делегата из тега delegateExpression"
-                ),
-                "code", new PropertyFields(
-                    "string",
-                    "Код, находящийся между <bpmn:serviceTask> и </bpmn:serviceTask> включительно"
-                )
-            ),
-            List.of("name", "code")
-        );
+                "object",
+                Map.of(
+                        "name", new PropertyFields(
+                                "string",
+                                "Имя делегата из тега delegateExpression"),
+                        "code", new PropertyFields(
+                                "string",
+                                "Код, находящийся между <bpmn:serviceTask> и </bpmn:serviceTask> включительно")),
+                List.of("name", "code"));
     }
 
     @Override
     protected List<FewShotExample> getFewShotExamples() {
         return List.of(
-            new FewShotExample(
-                getBodyRequest(),
-                Map.of("processXml", "<bpmn:serviceTask>foo</bpmn:serviceTask>")
-            )
-        );
+                new FewShotExample(
+                        "Найди все теги <bpmn:serviceTask> в bpmn процессе и верни их содержимое вместе с тегами.",
+                        Map.of("processXml",
+                                "<bpmn:service><bpmn:serviceTask>foo</bpmn:serviceTask></bpmn:service>")));
+    }
+
+    @Override
+    public GigachatMessage getGigachatMessage() {
+        return new GigachatMessage(
+                "user",
+                getBodyRequest());
+    }
+
+    @Override
+    protected ParamModel getParamModel() {
+        return new GetServiceTaskFunctionParamModel(processXml);
     }
 
 }
