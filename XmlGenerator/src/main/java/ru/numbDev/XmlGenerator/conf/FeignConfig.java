@@ -17,7 +17,6 @@ import org.springframework.context.annotation.Configuration;
 
 import feign.Client;
 
-
 @Configuration
 @LoadBalancerClients(defaultConfiguration = NoLoadBalancerConfiguration.class)
 public class FeignConfig {

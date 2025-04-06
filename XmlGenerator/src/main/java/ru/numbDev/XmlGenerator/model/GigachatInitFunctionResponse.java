@@ -12,12 +12,19 @@ public record GigachatInitFunctionResponse(
             Message message,
             Integer index,
             String finishReason) {
-    }
-
-    public record Message(
-            String content,
-            String role,
-            String functionsStateId) {
+        public record Message(
+                String content,
+                String role,
+                FunctionCall functionCall,
+                String functionsStateId) {
+            public record FunctionCall(
+                    String name,
+                    Arguments arguments) {
+                public record Arguments(
+                        String processXml) { // TODO динамический тип аргументов
+                }
+            }
+        }
     }
 
     public record Usage(

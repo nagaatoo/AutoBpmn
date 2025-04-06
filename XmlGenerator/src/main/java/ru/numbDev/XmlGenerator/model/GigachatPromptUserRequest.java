@@ -12,7 +12,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public record GigachatPromptUserRequest(
         String model,
         List<GigachatMessage> messages,
-        GigachatFunctionCallModel functionCall,
+        String functionCall,
         List<FunctionContent> functions,
         int n,
         Boolean stream,

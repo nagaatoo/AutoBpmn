@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
@@ -25,8 +26,9 @@ import ru.numbDev.XmlGenerator.feign.GigaChatAuthFeign;
 import ru.numbDev.XmlGenerator.feign.GigaChatFeign;
 import ru.numbDev.XmlGenerator.mapper.ChatRequestMapper;
 import ru.numbDev.XmlGenerator.model.AccessToken;
-import ru.numbDev.XmlGenerator.model.GigachatFunctionCallModel;
+import ru.numbDev.XmlGenerator.model.GigachatInitFunctionResponse;
 import ru.numbDev.XmlGenerator.model.GigachatMessage;
+import ru.numbDev.XmlGenerator.model.GigachatPromptRequest;
 import ru.numbDev.XmlGenerator.model.GigachatPromptUserRequest;
 
 @Slf4j
@@ -75,10 +77,24 @@ public class GigaChatModel implements ChatModel {
     @Override
     public ChatResponse call(Prompt prompt) {
         var message = (AbstractGigachatMessageDecorator) prompt.getInstructions().get(0);
-        var request = new GigachatPromptUserRequest(
+
+        var generatedParams = buildParamsForFunction(message);
+        addGeneratedParamsToModel(generatedParams, message);
+        callFuction(message);
+        // String answer =
+        // generatedParams.getBody().choices().get(0).message().content();
+        return ChatResponse
+                .builder()
+                .generations(List.of(new Generation(new AssistantMessage("foo")))) // answer
+                .build();
+    }
+
+    private GigachatInitFunctionResponse buildParamsForFunction(AbstractGigachatMessageDecorator message) {
+        var request = new GigachatPromptRequest(
                 getMyModel(),
-                List.of(new GigachatMessage("function", message.getText())),
-                new GigachatFunctionCallModel(message.getFunctionName(), message.getParamModel()),
+                List.of(message.getGigachatExampleMessage()),
+                "auto", // new GigachatFunctionCallModel(message.getFunctionName(),
+                        // message.getParamModel())
                 List.of(message.getFunctionCall()),
                 1,
                 false,
@@ -86,16 +102,65 @@ public class GigaChatModel implements ChatModel {
                 getDefaultOptions().getFrequencyPenalty(),
                 0);
 
-        // ResponseEntity<ModelResponse> response = feignClient.prompt(requestToken(),
-        // request);
-        var response = feignClient.executePrompt(requestToken(), request);
+        var response = feignClient.initFunction(requestToken(), request);
 
         checkStatus(response);
-        String answer = response.getBody().choices().get(0).message().content();
-        return ChatResponse
-                .builder()
-                .generations(List.of(new Generation(new AssistantMessage(answer))))
-                .build();
+        return response.getBody();
+    }
+
+    private void addGeneratedParamsToModel(
+            GigachatInitFunctionResponse generatedParams,
+            AbstractGigachatMessageDecorator message) {
+        String arguments = null;
+        try {
+            arguments = objectMapper
+                    .writeValueAsString(generatedParams.choices().get(0).message().functionCall().arguments());
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+
+        var request = new GigachatPromptRequest(
+                getMyModel(),
+                List.of(
+                        message.getGigachatExampleMessage(),
+                        new GigachatMessage(
+                                "assistant",
+                                arguments,
+                                null,
+                                generatedParams.choices().get(0).message().functionsStateId(),
+                                generatedParams.choices().get(0).message().functionCall()),
+                        new GigachatMessage(
+                                "function",
+                                arguments,
+                                message.getFunctionName(),
+                                null,
+                                null)),
+                "auto",
+                List.of(message.getFunctionCall()),
+                1,
+                false,
+                getDefaultOptions().getMaxTokens(),
+                getDefaultOptions().getFrequencyPenalty(),
+                0);
+
+        var response = feignClient.initFunction(requestToken(), request);
+        checkStatus(response);
+    }
+
+    private void callFuction(AbstractGigachatMessageDecorator message) {
+        var response = feignClient.executePrompt(
+                requestToken(),
+                new GigachatPromptUserRequest(
+                        getMyModel(),
+                        List.of(message.getGigachatMessage()),
+                        "auto",
+                        null,
+                        1,
+                        false,
+                        getDefaultOptions().getMaxTokens(),
+                        getDefaultOptions().getFrequencyPenalty(),
+                        0));
+        checkStatus(response);
     }
 
     @Override

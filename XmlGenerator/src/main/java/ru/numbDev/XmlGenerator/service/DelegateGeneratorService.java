@@ -32,6 +32,7 @@ public class DelegateGeneratorService {
     private final ChatResultMapper chatResultMapper;
 
     public String generateForProcess(String fileName, byte[] processXml) {
+
         String serviceBlocks = getServiceDelegatesFromXml(processXml);
         var serviceBlocksMap = chatResultMapper.mapJsonToServicesResponse(serviceBlocks);
         var delegates = generateDelegatesCode(serviceBlocksMap);
