@@ -18,9 +18,6 @@ import lombok.RequiredArgsConstructor;
 import ru.numbDev.XmlGenerator.ai.GetServiceTasksFunctionMessage;
 import ru.numbDev.XmlGenerator.feign.CamundaFeign;
 import ru.numbDev.XmlGenerator.mapper.ChatResultMapper;
-import ru.numbDev.XmlGenerator.model.InitProcessDto;
-import ru.numbDev.XmlGenerator.model.InitProcessDto.Delegate;
-import ru.numbDev.XmlGenerator.model.ServicesResponse;
 
 @Service
 @RequiredArgsConstructor
@@ -34,8 +31,8 @@ public class DelegateGeneratorService {
     public String generateForProcess(String fileName, byte[] processXml) {
 
         String serviceBlocks = getServiceDelegatesFromXml(processXml);
-        var serviceBlocksMap = chatResultMapper.mapJsonToServicesResponse(serviceBlocks);
-        var delegates = generateDelegatesCode(serviceBlocksMap);
+        // var serviceBlocksMap = chatResultMapper.mapJsonToServicesResponse(serviceBlocks);
+        // var delegates = generateDelegatesCode(serviceBlocksMap);
         // camundaFeign.initProcess(buildRequest(fileName, processXml, delegates));
 
         return serviceBlocks;
@@ -53,33 +50,33 @@ public class DelegateGeneratorService {
                 .content();
     }
 
-    private List<Delegate> generateDelegatesCode(List<ServicesResponse> servicesResponses) {
-        List<Delegate> delegates = new ArrayList<>();
-        String openapiSpec = getOpenapiSpec();
+    // private List<Delegate> generateDelegatesCode(List<ServicesResponse> servicesResponses) {
+    //     List<Delegate> delegates = new ArrayList<>();
+    //     String openapiSpec = getOpenapiSpec();
 
-        servicesResponses.forEach(serviceResponse -> {
-            String promptText = """
-                            Сгенерируй Spring javaDelegat'ы camunda для сервисного таскаописанного ниже.
-                            Текст <bpmn:serviceTask>: %s.
+    //     servicesResponses.forEach(serviceResponse -> {
+    //         String promptText = """
+    //                         Сгенерируй Spring javaDelegat'ы camunda для сервисного таскаописанного ниже.
+    //                         Текст <bpmn:serviceTask>: %s.
 
-                            Алгоритм делегата возьми из тега  <bpmn:documentation>.
-                            Ответом верни только java код делегата.
-                            Для сетевых вызовов, необходимымх процессу, используй спецификацию openapi: %s
-                            """.formatted(serviceResponse.code(), openapiSpec);
-            // String promptText = MessageFormat.format(
-            //         ,
-            //         serviceResponse.code(),
-            //         openapiSpec);
+    //                         Алгоритм делегата возьми из тега  <bpmn:documentation>.
+    //                         Ответом верни только java код делегата.
+    //                         Для сетевых вызовов, необходимымх процессу, используй спецификацию openapi: %s
+    //                         """.formatted(serviceResponse.code(), openapiSpec);
+    //         // String promptText = MessageFormat.format(
+    //         //         ,
+    //         //         serviceResponse.code(),
+    //         //         openapiSpec);
 
-            var delegateCode = chatClient
-                    .prompt(promptText)
-                    .call()
-                    .content();
-            delegates.add(new Delegate(serviceResponse.name(), delegateCode));
-        });
+    //         var delegateCode = chatClient
+    //                 .prompt(promptText)
+    //                 .call()
+    //                 .content();
+    //         delegates.add(new Delegate(serviceResponse.name(), delegateCode));
+    //     });
 
-        return delegates;
-    }
+    //     return delegates;
+    // }
 
     private String getOpenapiSpec() {
         try {
@@ -92,15 +89,15 @@ public class DelegateGeneratorService {
         }
     }
 
-    private InitProcessDto buildRequest(String fileName, byte[] processXml, String delegates) {
-        String[] delegatesArray = delegates.split("---");
-        return new InitProcessDto(
-                fileName,
-                processXml,
-                Stream.of(delegatesArray)
-                        .map(code -> new Delegate(null, code))
-                        .toList());
-    }
+    // private InitProcessDto buildRequest(String fileName, byte[] processXml, String delegates) {
+    //     String[] delegatesArray = delegates.split("---");
+    //     return new InitProcessDto(
+    //             fileName,
+    //             processXml,
+    //             Stream.of(delegatesArray)
+    //                     .map(code -> new Delegate(null, code))
+    //                     .toList());
+    // }
 
     private String getDelegateId(String code) {
         return null;

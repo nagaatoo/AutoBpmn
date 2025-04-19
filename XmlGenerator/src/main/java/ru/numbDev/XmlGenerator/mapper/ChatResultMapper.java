@@ -12,8 +12,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import ru.numbDev.XmlGenerator.model.ServicesResponse;
-
 // @Mapper(componentModel = "spring", injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 @Component
 public class ChatResultMapper {
@@ -26,11 +24,11 @@ public class ChatResultMapper {
     }
 
     // @Named("jsonToServicesResponse")
-    public List<ServicesResponse> mapJsonToServicesResponse(String jsonString) {
-        try {
-            return objectMapper.readValue(jsonString, new TypeReference<List<ServicesResponse>>() { });
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Ошибка при парсинге JSON в Map: " + e.getMessage(), e);
-        }
-    }
+    // public List<ServicesResponse> mapJsonToServicesResponse(String jsonString) {
+    //     try {
+    //         return objectMapper.readValue(jsonString, new TypeReference<List<ServicesResponse>>() { });
+    //     } catch (JsonProcessingException e) {
+    //         throw new RuntimeException("Ошибка при парсинге JSON в Map: " + e.getMessage(), e);
+    //     }
+    // }
 }
